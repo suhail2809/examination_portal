@@ -1,0 +1,113 @@
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+}
+
+body {
+    font-family:monospace;
+    background: rgb(240, 231, 231);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    min-height:  100vh;
+}
+
+.container {
+    background: rgb(155, 216, 240);
+    width: 400px;
+    padding: 30px;
+
+    border-radius: 25px;
+
+    
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 28px;
+    color:#0557ae;
+    
+}
+
+.signup {
+    text-align: center;
+    color: #067b11;
+    margin-bottom: 25px;
+    font-size: 20px;
+}
+#login {
+    text-align: center;
+    color: #b11bac;
+    margin-bottom: 25px;
+    font-size: 20px;
+}
+form {
+    display: flex;
+    flex-direction:column;
+    
+}
+
+label {
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+input {
+    padding: 10px;
+    margin-bottom: 17px;
+
+    border: 3px solid #dbcfcf;
+    border-radius: 8px;
+
+    font-size: 18px;
+}
+select {
+    padding: 10px;
+    margin-bottom: 17px;
+
+    border: 3px solid #ccc;
+    border-radius: 5px;
+
+    font-size: 14px;
+}
+
+button {
+    padding: 11px;
+    background: #007bff;
+    color: rgb(247, 240, 240);
+
+    border: none;
+    border-radius: 7px;
+
+    font-size: 16px;
+    cursor: pointer;
+    width: 150px;
+    display: block;
+    margin: auto;
+    margin-top: 20px;
+
+}
+
+button:hover {
+    background: #0056b3;
+    text-decoration: underline;
+}
+
+.login-link {
+    margin-top: 25px;
+    text-align: center;
+    
+}
+
+.login-link a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.login-link a:hover{
+    color:#e01111;
+    text-decoration: underline;
+}
