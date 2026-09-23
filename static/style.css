@@ -1,11 +1,11 @@
-
 * {
     box-sizing: border-box;
     margin: 0;
-}
+    
+} 
 
 body {
-    font-family:monospace;
+    font-family: 'Noto Sans', 'Sans-Serif' !important;
     background: rgb(240, 231, 231);
 
     display: flex;
@@ -16,11 +16,12 @@ body {
 }
 
 .container {
-    background: rgb(155, 216, 240);
-    width: 400px;
+    background: rgb(233, 236, 237);
+    width: 500px;
     padding: 30px;
 
     border-radius: 25px;
+    border: 1px solid black;
 
     
 }
@@ -29,20 +30,26 @@ h1 {
     text-align: center;
     margin-bottom: 28px;
     color:#0557ae;
+    font-size: larger;
     
 }
 
+
 .signup {
+    background: #3d9746;
+    color: white;
     text-align: center;
-    color: #067b11;
-    margin-bottom: 25px;
+    padding: 15px;
+    margin: -30px -30px 25px -30px;
     font-size: 20px;
+    border-radius: 25px 25px 0 0;
+    font-weight: bold;
 }
 #login {
     text-align: center;
     color: #b11bac;
     margin-bottom: 25px;
-    font-size: 20px;
+    font-size: 40px;
 }
 form {
     display: flex;
@@ -53,6 +60,7 @@ form {
 label {
     margin-bottom: 8px;
     font-weight: bold;
+    font-size: large;
 }
 
 input {
@@ -62,7 +70,7 @@ input {
     border: 3px solid #dbcfcf;
     border-radius: 8px;
 
-    font-size: 18px;
+    font-size: 17px;
 }
 select {
     padding: 10px;
@@ -99,15 +107,19 @@ button:hover {
 .login-link {
     margin-top: 25px;
     text-align: center;
+    border-top: 2px solid grey;
+    padding-top: 25px;
     
 }
 
 .login-link a {
     color: #007bff;
     text-decoration: none;
+    margin-bottom: 0%;
+
 }
 
 .login-link a:hover{
     color:#e01111;
     text-decoration: underline;
-}
+} 
