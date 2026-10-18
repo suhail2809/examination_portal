@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, url_for, abort, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User
+from models import db, User, Course, Examination, Rubric
 from app import app
 
 
@@ -104,7 +104,7 @@ def student_login():
         email= request.form["email"]
         password= request.form["password"]
 
-        user= User.query.filter_by(email=email, role="student").first()
+        user= User.query.filter_by(email=email, role="Student").first()
 
 
         if user and user.is_active and check_password_hash(user.password, password):
@@ -190,12 +190,45 @@ def examiner_dashboard():
 ## admin dashboard
 
 @app.route("/admin/dashboard")
-@login_required
+@login_required  #####flask login decorator matlab user ko dashboard access karne se pehle login krega
 def admin_dashboard():
     if current_user.role!="Admin":
         abort(403)
 
-    return render_template("admin_dashboard.html")
+    examiner_approval = User.query.filter_by(role='Examiner', is_approved=False, is_active=True).all()
+
+
+    
+
+
+    return render_template("admin_dashboard.html", examiner_approval=examiner_approval)
+##                                            left side html template variable, right side waala python varb name jisme databases se list aya hai
+
+@app.route("/admin/approve-examiner/<int:user_id>", methods=["POST"])
+@login_required
+
+def approve_examiner(user_id):
+    if current_user.role !="Admin":
+        abort(403)
+
+    examiner= User.query.filter_by(user_id=user_id, role="Examiner").first_or_404()
+
+    examiner.is_approved = True
+    db.session.commit()
+
+
+    return redirect(url_for("admin_dashboard"))
+
+
+
+
+
+
+
+
+
+
+
 
 
 ### logout route

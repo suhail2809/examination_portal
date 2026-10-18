@@ -1,0 +1,332 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Admin Dashboard - EMP</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+                rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #eaf3ee;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background-color: #0d3d33;
+            padding: 14px 0;
+        }
+
+        .navbar-brand {
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .navbar-brand:hover {
+            color: #dbf4e3;
+        }
+
+        .dashboard-title {
+            color: #163d32;
+            font-weight: bold;
+        }
+
+        .dashboard-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 35px;
+            margin-bottom: 35px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
+        }
+
+        .stat-card {
+            color: white;
+            border-radius: 12px;
+            padding: 22px 15px;
+            text-align: center;
+            min-height: 120px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.10);
+        }
+
+        .stat-card h6 {
+            font-size: 15px;
+            margin-bottom: 12px;
+        }
+
+        .stat-card h2 {
+            font-weight: bold;
+            margin-bottom: 0;
+        }
+
+        .stat-blue {
+            background-color: #2878dc;
+        }
+
+        .stat-purple {
+            background-color: #6840b8;
+        }
+
+        .stat-green {
+            background-color: #23845d;
+        }
+
+        .stat-yellow {
+            background-color: #e5b900;
+        }
+
+        .action-btn {
+            display: block;
+            width: 100%;
+            padding: 13px 8px;
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            text-align: center;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .action-btn:hover {
+            color: white;
+            filter: brightness(0.92);
+            transform: translateY(-2px);
+        }
+
+        .action-blue {
+            background-color: #2878dc;
+        }
+
+        .action-yellow {
+            background-color: #e5b900;
+            color: #263126;
+        }
+
+        .action-yellow:hover {
+            color: #263126;
+        }
+
+        .action-cyan {
+            background-color: #20b8cc;
+        }
+
+        .action-green {
+            background-color: #23845d;
+        }
+
+        .section-title {
+            color: #163d32;
+            font-weight: bold;
+        }
+
+        footer {
+            background-color: #0d3d33;
+            color: white;
+            text-align: center;
+            padding: 14px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+
+<nav class="navbar">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('admin_dashboard') }}">
+            EMP | Admin
+        </a>
+
+        <a href="{{ url_for('logout') }}" class="btn btn-light btn-sm">
+            Logout
+        </a>
+    </div>
+</nav>
+
+<div class="container">
+
+    <div class="dashboard-card">
+
+        <h2 class="dashboard-title mb-1">
+            Admin Dashboard
+        </h2>
+
+        <p class="text-secondary mb-4">
+            Welcome, {{ current_user.name }}! Manage your examination portal.
+        </p>
+
+        <!-- Statistics cards -->
+
+        <div class="row g-3 mb-4">
+
+            <div class="col-6 col-lg-3">
+                <div class="stat-card stat-blue">
+                    <h6>Total Students</h6>
+                    <h2>{{ total_students }}</h2>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="stat-card stat-purple">
+                    <h6>Total Examiners</h6>
+                    <h2>{{ total_examiners }}</h2>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="stat-card stat-green">
+                    <h6>Total Courses</h6>
+                    <h2>{{ total_courses }}</h2>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="stat-card stat-yellow">
+                    <h6>Total Examinations</h6>
+                    <h2>{{ total_examinations }}</h2>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Quick action buttons -->
+
+        <div class="row g-3 mb-4">
+
+            <div class="col-6 col-lg-3">
+                <a href="#course-management"
+                   class="action-btn action-blue">
+                    Manage Courses
+                </a>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <a href="#examination-management"
+                   class="action-btn action-yellow">
+                    Manage Examinations
+                </a>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <a href="#examiner-approval"
+                   class="action-btn action-cyan">
+                    Examiner Approvals
+                </a>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <a href="#student-records"
+                   class="action-btn action-green">
+                    Student Records
+                </a>
+            </div>
+
+        </div>
+
+        <hr>
+
+        <!-- Course management placeholder -->
+
+        <section id="course-management" class="mb-4">
+            <h5 class="section-title">Course Management</h5>
+            <p class="text-secondary mb-0">
+                Create and manage courses here.
+            </p>
+        </section>
+
+        <hr>
+
+        <!-- Examination management placeholder -->
+
+        <section id="examination-management" class="mb-4">
+            <h5 class="section-title">Examination Management</h5>
+            <p class="text-secondary mb-0">
+                Create examinations and configure their timelines here.
+            </p>
+        </section>
+
+        <hr>
+
+        <!-- Examiner approval -->
+
+        <section id="examiner-approval" class="mb-4">
+
+            <h5 class="section-title mb-3">
+                Pending Examiner Approvals
+            </h5>
+
+            {% if examiner_approval %}
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped align-middle">
+
+                        <thead class="table-success">
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Contact</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for examiner in examiner_approval %}
+                                <tr>
+                                    <td>{{ examiner.name }}</td>
+                                    <td>{{ examiner.email }}</td>
+                                    <td>{{ examiner.contact }}</td>
+                                    <td>
+                                        <form method="POST"
+                                                action="{{ url_for('approve_examiner', user_id=examiner.user_id) }}">
+
+                                            <button type="submit"
+                                                    class="btn btn-success btn-sm">
+                                                Approve
+                                            </button>
+
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+
+                    </table>
+                </div>
+
+            {% else %}
+
+                <p class="text-secondary">
+                    No pending examiner approvals.
+                </p>
+
+            {% endif %}
+
+        </section>
+
+        <hr>
+
+        <!-- Student records placeholder -->
+
+        <section id="student-records">
+            <h5 class="section-title">Student Records</h5>
+            <p class="text-secondary mb-0">
+                View and manage registered students here.
+            </p>
+        </section>
+
+    </div>
+
+</div>
+
+<footer>
+    Examination Management Portal | Admin Panel
+</footer>
+
+</body>
+</html>
