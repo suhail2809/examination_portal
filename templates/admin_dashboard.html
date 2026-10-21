@@ -85,7 +85,7 @@
             display: block;
             width: 100%;
             padding: 13px 8px;
-            border-radius: 8px;
+            border-radius: 14px;
             color: white;
             text-decoration: none;
             text-align: center;
@@ -161,7 +161,6 @@
             Welcome, {{ current_user.name }}! Manage your examination portal.
         </p>
 
-        <!-- Statistics cards -->
 
         <div class="row g-3 mb-4">
 
@@ -193,36 +192,56 @@
                 </div>
             </div>
 
-        </div>
-
-        <!-- Quick action buttons -->
-
-        <div class="row g-3 mb-4">
+            <div class="col-6 col-lg-3">
+                <div class="stat-card action-cyan">
+                    <h6>Total Examination Slots</h6>
+                    <h2>{{ total_examination_slots }}</h2>
+                </div>
+            </div>
 
             <div class="col-6 col-lg-3">
-                <a href="#course-management"
-                   class="action-btn action-blue">
+                <div class="stat-card stat-blue">
+                    <h6>Total Bookings</h6>
+                    <h2>{{ total_bookings }}</h2>
+                </div>
+            </div>
+
+        </div>
+<hr>
+
+        <div class="row g-3 mb-4 mt-5">
+
+            <div class="col-6 col-lg-3">
+                <a href="{{url_for('manage_courses')}}"
+                    class="action-btn action-blue">
                     Manage Courses
                 </a>
             </div>
 
             <div class="col-6 col-lg-3">
                 <a href="#examination-management"
-                   class="action-btn action-yellow">
+                    class="action-btn action-yellow">
                     Manage Examinations
                 </a>
             </div>
 
             <div class="col-6 col-lg-3">
-                <a href="#examiner-approval"
-                   class="action-btn action-cyan">
+                <a href="{{url_for('examiner_approvals')}}"
+                    class="action-btn action-cyan">
                     Examiner Approvals
+                </a>
+            </div>
+            
+            <div class="col-6 col-lg-3">
+                <a href="#rubrics-management"
+                    class="action-btn stat-purple">
+                    Manage Rubrics 
                 </a>
             </div>
 
             <div class="col-6 col-lg-3">
                 <a href="#student-records"
-                   class="action-btn action-green">
+                    class="action-btn action-green">
                     Student Records
                 </a>
             </div>
@@ -230,8 +249,6 @@
         </div>
 
         <hr>
-
-        <!-- Course management placeholder -->
 
         <section id="course-management" class="mb-4">
             <h5 class="section-title">Course Management</h5>
@@ -242,8 +259,6 @@
 
         <hr>
 
-        <!-- Examination management placeholder -->
-
         <section id="examination-management" class="mb-4">
             <h5 class="section-title">Examination Management</h5>
             <p class="text-secondary mb-0">
@@ -252,66 +267,6 @@
         </section>
 
         <hr>
-
-        <!-- Examiner approval -->
-
-        <section id="examiner-approval" class="mb-4">
-
-            <h5 class="section-title mb-3">
-                Pending Examiner Approvals
-            </h5>
-
-            {% if examiner_approval %}
-
-                <div class="table-responsive">
-                    <table class="table table-bordered table-striped align-middle">
-
-                        <thead class="table-success">
-                            <tr>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Contact</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            {% for examiner in examiner_approval %}
-                                <tr>
-                                    <td>{{ examiner.name }}</td>
-                                    <td>{{ examiner.email }}</td>
-                                    <td>{{ examiner.contact }}</td>
-                                    <td>
-                                        <form method="POST"
-                                                action="{{ url_for('approve_examiner', user_id=examiner.user_id) }}">
-
-                                            <button type="submit"
-                                                    class="btn btn-success btn-sm">
-                                                Approve
-                                            </button>
-
-                                        </form>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-
-                    </table>
-                </div>
-
-            {% else %}
-
-                <p class="text-secondary">
-                    No pending examiner approvals.
-                </p>
-
-            {% endif %}
-
-        </section>
-
-        <hr>
-
-        <!-- Student records placeholder -->
 
         <section id="student-records">
             <h5 class="section-title">Student Records</h5>
@@ -324,8 +279,8 @@
 
 </div>
 
-<footer>
-    Examination Management Portal | Admin Panel
+<footer class="fixed-bottom">
+    Examination Management Portal | Admin Panel | IITM | MAD-1 Project
 </footer>
 
 </body>

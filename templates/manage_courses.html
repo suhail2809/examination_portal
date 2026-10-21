@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Courses </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+
+    <style>
+
+        body{
+            background-color: #eaf3ee;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+        }
+
+        .navbar{
+            background-color: #0d3d33;
+            
+        }
+        .navbar-brand{
+            color: white;
+            font-weight: bold;
+
+        }
+        .page-card{
+            background-color: whitesmoke;
+            border-radius: 14px;
+            padding:25px;
+            margin-top: 30px;
+            margin-bottom: 30px;
+
+        }
+        .section-title{
+            color: #163d32;
+            font-weight: bold;
+
+        }
+        footer {
+            background-color: #0d3d33;
+            color: white;
+            text-align: center;
+            padding: 14px;
+            font-size: 13px;
+        }
+    </style>
+    
+</head>
+
+<body>
+    
+    <nav class="navbar">
+        <div class="container">
+            <a href="{{url_for('admin_dashboard')}}" class="navbar-brand"> Admin </a>
+        
+            <a href="{{url_for('logout')}}" class="btn btn-warning btn-sm">Logout </a>
+        </div>
+    </nav>
+
+
+    <div class="container">
+        <div class="page-card">
+            <h2 class="section-title"> Manage Courses</h2>
+            <p class="text-secondary"> Create, Update and manage courses.</p>
+            
+            <a href="{{url_for('admin_dashboard')}}" class="btn btn-outline-success btn-sm"> Back to dashboard </a>
+
+
+            <hr>
+
+            <h5 class="section-title mb-3"> Create New Course</h5>
+
+            <form method ="POST" action="{{url_for ('manage_courses')}}">
+
+                <div class="mb-3">
+
+                    <label for="course_code" class="form-label">
+                        Course Code
+                    </label>
+
+                    <input type="text" id="course_code" name="course_code"
+                    class= "form-control" required>
+                </div>
+
+                <div class="mb-3">
+
+                    <label for="course_name" class="form-label">
+                        Course Name 
+                    </label>
+
+                    <input type="text" id="course_name" name="course_name"
+                    class= "form-control" required>
+                </div>
+
+
+                <div class="mb-3">
+
+                    <label for="descriptions" class="form-label">
+                        Course Descriptions:
+                    </label>
+
+                    <textarea  id="descriptions" name="descriptions"
+                    class= "form-control" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary d-grid gap-2 col-6 mx-auto"> Create Course</button>
+
+                
+            </form>
+
+        </div>
+
+            <hr>
+                <hr>
+        <div class="page-card">
+            <h5 class="section-title mb-3"> All Courses </h5>
+
+
+            {% if courses %}
+                <div class="table-responsive">
+
+                    <table class="table table-bordered table-striped align-middle">
+
+                        <thead class="table-success">
+                            <tr>
+                                <th>ID</th>
+                                <th>Course Name</th>
+                                <th>Descriptions</th>
+                                <th> Status</th>
+                                <th> Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for course in courses %}
+                                <tr>
+                                    <td>{{ course.course_id }}</td>
+                                    <td>{{ course.course_code }}</td>
+                                    <td>{{ course.course_name }}</td>
+                                    <td>{{ course.descriptions or "None" }}</td>
+
+                                    <td>
+                                        <span class="badge bg-success">
+                                            {{ course.status}}
+
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <form method="POST" action ="{{url_for('delete_course', course_id = course.course_id)}}">
+
+                                        <button type="submit" class="btn btn-danger btn-delete"> Delete</button>
+                                        </form>
+                                    </td>
+
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                            
+                    </table>
+                </div>
+
+
+            {% else %}
+                <p class="text-seconda"> No course availaible</p>
+            {% endif %}
+
+        </div>
+    </div>
+    
+    <footer class="fixed-bottom"> Examination Management POrtal| IITM | MAD-1 Project</footer>
+
+</body>
+</html>

@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, url_for, abort, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User, Course, Examination, Rubric
+from models import db, User, Course, Examination, Rubric, ExamSlot,Booking, RubricScore 
 from app import app
 
 
@@ -49,7 +49,7 @@ def student_signup():
                     password=generate_password_hash(password),
                     contact=contact,
                     role='Student',
-                    is_approved=True,
+                    # is_approved=True,
                     is_active=True)
 
         db.session.add(user)
@@ -73,7 +73,7 @@ def examiner_signup():
         existing_user= User.query.filter_by(email=email).first()
 
         if existing_user:
-            return redirect(url_for("examiner_signup"))
+            return redirect(url_for("examiner_login"))
 
 
         user = User(
@@ -198,10 +198,20 @@ def admin_dashboard():
     examiner_approval = User.query.filter_by(role='Examiner', is_approved=False, is_active=True).all()
 
 
-    
+    total_students = User.query.filter_by(role="Student").count()
+    total_examiners = User.query.filter_by(role="Examiner").count()
+    total_courses = Course.query.count()
+
+    total_examinations = Examination.query.count()
+    total_examination_slots  = ExamSlot.query.count()
+    total_bookings = Booking.query.count()
 
 
-    return render_template("admin_dashboard.html", examiner_approval=examiner_approval)
+
+    return render_template("admin_dashboard.html", examiner_approval=examiner_approval,
+                            total_students= total_students, total_examiners=total_examiners,total_courses = total_courses,
+                                        total_examinations = total_examinations, total_examination_slots = total_examination_slots,
+                                            total_bookings = total_bookings)
 ##                                            left side html template variable, right side waala python varb name jisme databases se list aya hai
 
 @app.route("/admin/approve-examiner/<int:user_id>", methods=["POST"])
@@ -222,15 +232,6 @@ def approve_examiner(user_id):
 
 
 
-
-
-
-
-
-
-
-
-
 ### logout route
 
 @app.route("/logout")
@@ -238,3 +239,71 @@ def approve_examiner(user_id):
 def logout():
     logout_user()
     return redirect(url_for("index"))
+
+
+
+### course manage ###
+
+@app.route("/admin/courses", methods=["GET","POST"])
+@login_required
+
+def manage_courses():
+    if current_user.role!= "Admin":
+        abort(403)
+
+    if request.method == "POST":
+
+        course_code = request.form.get("course_code")
+        course_name = request.form.get("course_name")
+        descriptions = request.form.get("descriptions")
+
+        existing_course = Course.query.filter_by(course_code= course_code).first()
+
+        if existing_course:
+            flash("Course code already exists")
+        else:
+            course = Course(
+                course_code = course_code, course_name= course_name, descriptions=descriptions, status="Active"
+            )
+
+            db.session.add(course)
+            db.session.commit()
+
+            return redirect(url_for("manage_courses"))
+
+
+    courses = Course.query.order_by(Course.course_id.desc()).all()
+
+    return render_template("manage_courses.html", courses= courses)
+
+
+
+
+@app.route("/admin/courses/delete/<int:course_id>", methods=["POST"])
+@login_required
+def delete_course(course_id):
+    if current_user.role != "Admin":
+        abort(403)
+
+    course = Course.query.get_or_404(course_id)
+
+    db.session.delete(course)
+    db.session.commit()
+
+    flash("Course deleted successfully!")
+    return redirect(url_for("manage_courses"))
+
+
+
+
+
+@app.route("/admin/examiner-approvals")
+@login_required
+
+def examiner_approvals():
+    if current_user.role!= "Admin":
+        abort(403)
+
+    examiner_approval = User.query.filter_by(role="Examiner", is_approved=False, is_active=True).all()
+
+    return render_template("examiner_approval.html",examiner_approval=examiner_approval)
