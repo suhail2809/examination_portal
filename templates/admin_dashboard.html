@@ -219,7 +219,7 @@
             </div>
 
             <div class="col-6 col-lg-3">
-                <a href="#examination-management"
+                <a href="{{url_for('manage_exams')}}"
                     class="action-btn action-yellow">
                     Manage Examinations
                 </a>
@@ -229,6 +229,13 @@
                 <a href="{{url_for('examiner_approvals')}}"
                     class="action-btn action-cyan">
                     Examiner Approvals
+                </a>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <a href="{{url_for('manage_examiners')}}"
+                    class="action-btn action-cyan">
+                    Manage Examiners
                 </a>
             </div>
             
