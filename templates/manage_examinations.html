@@ -188,6 +188,27 @@
 <div class="container mb-5">
     <h2 class="text-center mb-4">Existing Examinations</h2>
 
+    <div>
+        <form method="GET" class="d-flex gap-2 mb-3">
+
+    <input type="text"
+           name="search"
+           class="form-control"
+           placeholder="Search by examination title or ID"
+           value="{{ request.args.get('search', '') }}">
+
+    <button type="submit" class="btn btn-success">
+        Search
+    </button>
+
+    <a href="{{ url_for('manage_exams') }}"
+       class="btn btn-secondary">
+        Reset
+    </a>
+
+</form>
+    </div>
+
     <div class="table-responsive bg-white p-3 rounded">
         <table class="table table-bordered table-striped">
             <thead class="table-dark">

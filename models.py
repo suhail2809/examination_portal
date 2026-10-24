@@ -392,12 +392,24 @@ class RubricScore(db.Model):
         backref=db.backref("scores", lazy=True)
     )
 
+class ExaminationAssignment(db.Model):
+    __tablename__ = "examination_assignments"
 
+    __table_args__ = (
+        db.UniqueConstraint(
+            "examination_id",
+            "examiner_id",
+            name = "unique_examination_examiner"
+        ),
+    )
 
+    assignment_id = db.Column(db.Integer, primary_key=True)
+    examination_id = db.Column(db.Integer , db.ForeignKey("examinations.exam_id"),nullable=False)
+    examiner_id = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
+    assigned_time= db.Column(db.DateTime, default= datetime.utcnow, nullable=False)
 
-
-
-
+    examination= db.relationship("Examination", backref=db.backref("examiner_assignments"))
+    examiner = db.relationship("User", backref=db.backref("examination_assignments"))
 
 
 
