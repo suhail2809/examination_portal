@@ -319,6 +319,52 @@ def assign_examiners():
     return render_template("assign_examiners.html", examinations=examinations, examiners=examiners,assignments=assignments, error=error)
 
 
+### edit assignments 25 oct
+@app.route("/admin/assignments/edit_assignment/<int:assignment_id>", methods=["GET","POST"])
+@login_required
+
+def edit_assignment(assignment_id):
+    if current_user.role!= "Admin":
+        abort(403)
+
+    assignment = ExaminationAssignment.query.get_or_404(assignment_id)
+
+    if request.method== "POST":   #### ye check krega form html template jo post se tha wo submit hua ki nhi
+        
+        examiner_id = request.form.get("examiner_id", "")
+
+        examiner = User.query.filter_by(user_id =int(examiner_id), role="Examiner",
+                                        is_approved=True, is_active=True).first()
+
+        existing = ExaminationAssignment.query.filter_by(examination_id = assignment.examination_id, examiner_id = examiner.user_id).first()
+
+        if existing and existing.assignment_id != assignment.assignment_id:
+            abort(400)
+        assignment.examiner_id = examiner.user_id
+        db.session.commit()
+
+        return redirect(url_for("assign_examiners"))
+
+    examiners = User.query.filter_by(role="Examiner", is_approved=True, is_active=True).all()
+
+
+    return render_template("edit_assignment.html", assignment=assignment,examiners=examiners)
+
+#### delete assignments 
+@app.route("/admin/assignments/delete_assignment/<int:assignment_id>", methods=["POST"])
+@login_required
+def delete_assignment(assignment_id):
+    if current_user.role != "Admin":
+        abort(403)
+
+    assignment = ExaminationAssignment.query.get_or_404(assignment_id)
+
+    db.session.delete(assignment)
+    db.session.commit()
+
+    return redirect(url_for("assign_examiners"))
+
+
 
 ### course manage ###
 @app.route("/admin/courses", methods=["GET","POST"])
@@ -362,7 +408,7 @@ def delete_course(course_id):
 
     db.session.delete(course)
     db.session.commit()
-    
+
     return redirect(url_for("manage_courses"))
 
 @app.route("/admin/courses/edit_courses/<int:course_id>", methods=["GET","POST"])
@@ -554,4 +600,5 @@ def delete_exams(exam_id):
 
 
 ##### adding func for assigning examiners to examiantions
+
 
