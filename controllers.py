@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, Course, Examination, Rubric, ExamSlot,Booking, RubricScore , Evaluation, ExaminationAssignment
 from app import app
-from datetime import date, datetime
+from datetime import date, datetime, time
 
 def dashboard_redirect(user):
     if user.role=="Admin":
@@ -166,7 +166,9 @@ def examiner_dashboard():
         logout_user()
         return redirect(url_for("examiner_login"))
 
-    return render_template("examiner_dashboard.html")
+    assignments = ExaminationAssignment.query.filter_by(examiner_id =current_user.user_id).all()
+
+    return render_template("examiner_dashboard.html", assignments=assignments)
 
 
 ## admin dashboard
@@ -599,6 +601,54 @@ def delete_exams(exam_id):
     return redirect(url_for("manage_exams"))
 
 
-##### adding func for assigning examiners to examiantions
 
+@app.route("/examiner/create-slots/<int:exam_id>", methods=["GET","POST"])
+@login_required
+def create_slots(exam_id):
+    if current_user.role!= "Examiner":
+        abort(403)
+    if not current_user.is_active or not current_user.is_approved:
+        logout_user()
+        return redirect(url_for("examiner_login"))
 
+    assignment = ExaminationAssignment.query.filter_by(examination_id=exam_id, examiner_id=current_user.user_id).first()
+
+    if not assignment:
+        abort(403)
+    examination= Examination.query.get_or_404(exam_id)
+
+    if request.method=='POST':
+        slot_date= date.fromisoformat(request.form.get("date"))
+        start_time= time.fromisoformat(request.form.get("start_time"))
+        end_time = time.fromisoformat(request.form.get("end_time"))
+        capacity = int(request.form.get("capacity"))
+
+        if start_time >= end_time or capacity <=0:
+            abort(400, description="a")
+        if not examination.start_date or not examination.end_date:
+            abort(400, description="b")
+        
+        if not (examination.start_date <= slot_date <=examination.end_date):
+            abort(400, description="c")
+        now= datetime.now()
+
+        if not examination.slot_creation_start or not examination.slot_creation_end:
+            abort(400, description="d")
+
+        if not (examination.slot_creation_start  <= examination.slot_creation_end):
+            abort(400, description="e")
+
+        slot = ExamSlot(
+            examination_id = exam_id,
+            examiner_id = current_user.user_id,
+            date= slot_date,
+            start_time =start_time,
+            end_time= end_time,
+            capacity= capacity
+        )
+        db.session.add(slot)
+        db.session.commit()
+
+        return redirect(url_for("examiner_dashboard"))
+
+    return render_template("create_slots.html" ,  examination=examination)

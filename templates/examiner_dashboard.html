@@ -1,6 +1,6 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +14,7 @@
             font-family: Arial, sans-serif;
         }
 
-        .navbar{
+        .navbar {
             background-color: #0d3d33;
         }
 
@@ -34,29 +34,65 @@
 
 <body>
 
-<nav class="navbar">
+    <nav class="navbar">
+        <div class="container">
+            <span class="navbar-brand">Examination Management Portal</span>
+            <a href="{{ url_for('logout') }}" class="btn btn-light">Logout</a>
+        </div>
+    </nav>
+
     <div class="container">
-        <span class="navbar-brand">Examination Management Portal</span>
-        <a href="{{ url_for('logout') }}" class="btn btn-light">Logout</a>
-    </div>
-</nav>
-
-<div class="container">
-    <div class="dashboard-card">
-        <h2 class="fw-bold">Welcome, Examiner!</h2>
-        <p class="text-secondary">
+        <div class="dashboard-card">
+            <h2 class="fw-bold">Welcome, {{ current_user.name }} !</h2>
+            <!-- <p class="text-secondary">
             Manage courses, examinations.
-        </p>
+        </p> -->
 
-        <hr>
+            <hr>
 
-        <h5>Dashboard</h5>
-        <p>Course Management</p>
-        <p>Examination Management</p>
-        <p>Examiner Approval</p>
-        <p>Student Records</p>
+            <div class="container ">
+
+                <h3 class="mb-4 text-center ">Assigned Examinations</h3>
+
+                {% if assignments %}
+                <div class="row g-3">
+
+                    {% for assignment in assignments %}
+                    <div class="col md-6">
+                        <div class="card p-3 h-100">
+                            <h5>{{ assignment.examination.title }}</h5>
+                            <p class="mb-1">
+                                <strong>Course:</strong>
+                                {{ assignment.examination.course.course_name }}
+                            </p>
+
+                            <p class="mb-1">
+
+                                <strong>Type:</strong>
+                                {{ assignment.examination.exam_type }}
+                            </p>
+                            <p class="mb-1">
+                                <strong>Start Date:</strong>
+                                {{ assignment.examination.start_date }}
+                            </p>
+
+                            <p class="mb-0">
+                                <strong>End Date:</strong>
+                                {{ assignment.examination.end_date }}
+                            </p>
+
+                            <a href="{{url_for('create_slots', exam_id = assignment.examination.exam_id)}}" class="btn btn-success mt-3  w-100"> Create Slots </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-mutd"> No assigned examinations</p>
+                {% endif%}
+            </div>
+
+        </div>
     </div>
-</div>
 
 </body>
 

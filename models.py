@@ -1,9 +1,6 @@
-
-
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from datetime import datetime
-
 
 db = SQLAlchemy()
 
@@ -410,8 +407,6 @@ class ExaminationAssignment(db.Model):
 
     examination= db.relationship("Examination", backref=db.backref("examiner_assignments"))
     examiner = db.relationship("User", backref=db.backref("examination_assignments"))
-
-
 
 
 
