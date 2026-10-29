@@ -11,7 +11,6 @@
     <style>
         body {
             background-color: #dbf4e3;
-            font-family: Arial, sans-serif;
         }
 
         .navbar {
@@ -23,12 +22,45 @@
             font-weight: bold;
         }
 
-        .dashboard-card {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            margin-top: 40px;
+        .dashboard-container {
+            margin-top: 30px;
+            margin-bottom: 40px;
         }
+
+        h2, h4 {
+            color: #0d3d33;
+        }
+
+        .stat-card {
+            background-color: white;
+            border: none;
+            border-radius: 12px;
+            height: 100%;
+        }
+
+        .stat-number {
+            color: #31796b;
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        .btn-custom {
+            background-color: #31796b;
+            color: white;
+        }
+
+        .btn-custom:hover {
+            background-color: #0d3d33;
+            color: white;
+        }
+
+        .table-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            
+        }
+
     </style>
 </head>
 
@@ -36,21 +68,57 @@
 
     <nav class="navbar">
         <div class="container">
-            <span class="navbar-brand">Examination Management Portal</span>
-            <a href="{{ url_for('logout') }}" class="btn btn-light">Logout</a>
+            <a href="{{ url_for('examiner_dashboard')}}" class="navbar-brand">Examination Management Portal</a>
+            
+            <a href="{{ url_for('logout') }}" class="btn btn-outline-light btn-sm">Logout</a>
         </div>
     </nav>
 
-    <div class="container">
-        <div class="dashboard-card">
+    <div class="container dashboard-container">
+        <div class="dashboard-card mb-4">
             <h2 class="fw-bold">Welcome, {{ current_user.name }} !</h2>
-            <!-- <p class="text-secondary">
-            Manage courses, examinations.
-        </p> -->
+            <p class="text-secondary">
+            Manage Exam Slots and assigned examinations.
+            </p> </div>
 
             <hr>
 
-            <div class="container ">
+            <div class="row g-3 mb-4">
+
+                <div class="col-md-6 col-lg-3">
+                    <div class="card stat-card p-3 text-center">
+                        <h6>Assigned Examinations</h6>
+                        <div class="stat-number">{{ assigned_count }}</div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <div class="card stat-card p-3 text-center">
+                        <h6>slots created</h6>
+                        <div class="stat-number">{{ slots_count }}</div>
+
+                       
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <div class="card stat-card p-3 text-center">
+                        <h6>Total Students Booked</h6>
+                        <div class="stat-number">{{ students_booked }}</div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <div class="card stat-card p-3 text-center">
+                        <h6>Pending Evaluations</h6>
+                        <div class="stat-number">{{ pending_evaluations }}</div>
+                    </div>
+                </div>
+
+
+            </div>
+
+            <div class="dashboard-card mb-4 ">
 
                 <h3 class="mb-4 text-center ">Assigned Examinations</h3>
 
@@ -87,13 +155,19 @@
                     {% endfor %}
                 </div>
                 {% else %}
-                <p class="text-mutd"> No assigned examinations</p>
+                <p class="text-muted"> No assigned examinations</p>
                 {% endif%}
             </div>
 
-        </div>
+        </div>        
     </div>
+    <div class="dashboard-card text-center ">
+    
+            <h5>My Examination slots</h5>
+            <a href="{{ url_for('examiner_slots')}}" class="btn btn-primary "> View Your Slots</a>
 
+    </div>
+    </div>
 </body>
 
 </html>

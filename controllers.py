@@ -168,9 +168,26 @@ def examiner_dashboard():
         logout_user()
         return redirect(url_for("examiner_login"))
 
-    assignments = ExaminationAssignment.query.filter_by(examiner_id =current_user.user_id).all()
+    assignments= ExaminationAssignment.query.filter_by(examiner_id= current_user.user_id).all()
+    slots = ExamSlot.query.filter_by(examiner_id = current_user.user_id).all() #fetching slots that is created by this examiner
 
-    return render_template("examiner_dashboard.html", assignments=assignments)
+    students_booked = Booking.query.join(ExamSlot, Booking.slot_id ==ExamSlot.slot_id).filter(
+                            ExamSlot.examiner_id == current_user.user_id,
+                            Booking.status.in_(["Booked","Completed"])).count()
+
+
+    pending_evaluations= 0
+    for slot in slots:  ## for every slot find its all completed bookings
+        bookings = Booking.query.filter_by(slot_id=slot.slot_id, status="Completed").all()
+
+        for booking in bookings: ### it will check every bookings evaluation; for each booking if evaluation exist
+            evaluation= Evaluation.query.filter_by(booking_id = booking.booking_id).first()
+            if evaluation is None:
+                pending_evaluations +=1
+
+    return render_template("examiner_dashboard.html", assignments=assignments, students_booked=students_booked,
+                            assigned_count=len(assignments), slots_count=len(slots),
+                            pending_evaluations=pending_evaluations)
 
 
 ## admin dashboard
@@ -717,5 +734,18 @@ def cancel_slots(slot_id):
     return redirect(url_for('manage_slots'))
     
 
+## view examiner slots route
+@app.route("/examiner/my-slots")
+@login_required
+def examiner_slots():
 
+    if current_user.role!="Examiner":
+        abort(403)
+    if not current_user.is_active or not current_user.is_approved:
+        logout_user
+        return redirect(url_for('examiner_login'))
+
+    slots = ExamSlot.query.filter_by(examiner_id= current_user.user_id).order_by(ExamSlot.date,ExamSlot.start_time).all()
+
+    return render_template("examiner_slots.html", slots=slots)
 
