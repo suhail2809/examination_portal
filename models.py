@@ -21,8 +21,8 @@ class User(UserMixin, db.Model):
     # roll_number = db.Column(db.String(100), unique=True)
     # batch = db.Column(db.String(30))
 
-    # # Examiner details
-    # department = db.Column(db.String(100))
+    # Examiner details
+    department = db.Column(db.String(100))
     # qualification = db.Column(db.String(100))
 
     # Account approval and activation

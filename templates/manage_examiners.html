@@ -127,6 +127,7 @@ The {{ search }} syntax is Jinja2, which inserts the value supplied by Flask. --
                         <th>Name</th>
                         <th>Email</th>
                         <th>Contact</th>
+                        <th>Department</th>
                         <th>Approval</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -146,7 +147,10 @@ The {{ search }} syntax is Jinja2, which inserts the value supplied by Flask. --
 
                         <td>{{ examiner.email }}</td>
 
+                        
+
                         <td>{{ examiner.contact }}</td>
+                        <td> {{ examiner.department }}</td>
 
                         <td>
                             {% if examiner.is_approved %}

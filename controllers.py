@@ -65,6 +65,7 @@ def examiner_signup():
         name = request.form["name"]
         email= request.form["email"]
         password=request.form["password"]
+        department=request.form["department"]
         contact= request.form["contact"]
 
         existing_user= User.query.filter_by(email=email).first()
@@ -76,6 +77,7 @@ def examiner_signup():
             name=name,
             email=email,
             password=generate_password_hash(password),
+            department=department,
             contact=contact,
             role="Examiner",
             is_approved= False,
@@ -652,3 +654,68 @@ def create_slots(exam_id):
         return redirect(url_for("examiner_dashboard"))
 
     return render_template("create_slots.html" ,  examination=examination)
+
+### view slots by admin
+
+@app.route("/admin/manage-slots")
+@login_required
+
+def manage_slots():
+    if current_user.role!="Admin":
+        abort(403)
+
+    slots = ExamSlot.query.order_by(ExamSlot.date, ExamSlot.start_time).all()
+
+    return render_template("manage_slots.html", slots=slots)
+
+### edit and cancel examslots by admin
+
+@app.route("/admin/edit-slots/<int:slot_id>", methods=["GET","POST"])
+@login_required
+
+def edit_slots(slot_id):
+    if current_user.role!="Admin":
+        abort(403)
+
+    slot = ExamSlot.query.get_or_404(slot_id)
+    if request.method=="POST":
+        slot.date= date.fromisoformat(request.form.get('date'))
+        slot.start_time= time.fromisoformat(request.form.get('start_time'))
+        slot.end_time = time.fromisoformat(request.form.get('end_time'))
+        slot.capacity = int(request.form.get('capacity'))
+
+        if not slot.start_time <= slot.end_time:
+            abort(400, description="start time must be before end time; fix your time slot")
+
+        if  slot.capacity < 1:
+            abort(400, description="capacity cant be empty or zero")
+
+        if slot.capacity < slot.booked_count:
+            abort(400, description="capacity cant be lesser than existing bookings")
+
+        db.session.commit()
+        return redirect(url_for("manage_slots"))
+            
+    return render_template("edit_slots.html", slot=slot)
+
+
+@app.route("/admin/cancel-slots/<int:slot_id>", methods=["POST"])
+@login_required
+def cancel_slots(slot_id):
+
+    if current_user.role!="Admin":
+        abort(403)
+    slot = ExamSlot.query.get_or_404(slot_id)
+
+    if slot.booked_count >=1:
+        abort(403, description="cant be cancelled, booking present")
+
+    
+    slot.status = "cancelled"
+
+    db.session.commit()
+    return redirect(url_for('manage_slots'))
+    
+
+
+
