@@ -1,6 +1,6 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -34,28 +34,130 @@
 
 <body>
 
-<nav class="navbar">
+    <nav class="navbar">
+        <div class="container">
+            <span class="navbar-brand">Examination Management Portal</span>
+            <a href="{{ url_for('logout') }}" class="btn btn-light">Logout</a>
+        </div>
+    </nav>
+
     <div class="container">
-        <span class="navbar-brand">Examination Management Portal</span>
-        <a href="{{ url_for('logout') }}" class="btn btn-light">Logout</a>
+        <div class="dashboard-card">
+            <h2 class="fw-bold">Welcome, {{current_user.name }}!</h2>
+            <p class="text-secondary"> Welcome, here you can book your exam slots, upcoming exams and your published
+                results.</p>
+
+            <hr>
+            <h5>Total Bookings</h5>
+            <h2>{{ total_bookings }}</h2>
+
+            <hr>
+
+            <h4 class="fw-bold mb-3"> Available Slots</h4>
+
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-success">
+                        <tr>
+                            <th>Slot ID</th>
+                            <th>Exam ID</th>
+                            <th>Date </th>
+                            <th>Start Time </th>
+                            <th>End Time </th>
+                            <th>Max Seats</th>
+                            <th>Available Seats</th>
+                            <th>Status</th>
+                            <th>Action</th>
+
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for slot in slots %}
+                        <tr>
+                            <td>{{ slot.slot_id }}</td>
+                            <td>{{ slot.examination_id }}</td>
+                            <td>{{ slot.date }}</td>
+                            <td>{{ slot.start_time }}</td>
+                            <td>{{ slot.end_time }}</td>
+                            <td>{{ slot.capacity }}</td>
+                            <td>{{ slot.available_seats }}</td>
+                            <td>{{ slot.status }}</td>
+                            <td>
+
+                                <form method="POST" action="{{ url_for('book_slot', slot_id=slot.slot_id) }}">
+                                    <button type="submit" class="btn btn-success btn-sm">
+                                        Book
+                                    </button>
+                                </form>
+
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center"> no slots found</td>
+
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <hr>
+
+            <h4 class="fw-bold mb-3">My Bookings</h4>
+
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-success">
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Exam</th>
+                            <th>Slot Date</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for booking in my_bookings %}
+                        <tr>
+                            <td>{{ booking.booking_id }}</td>
+                            <td>{{ booking.examination.title }}</td>
+                            <td>{{ booking.slot.date }}</td>
+                            <td>{{ booking.slot.start_time }}</td>
+                            <td>{{ booking.slot.end_time }}</td>
+                            <td>{{ booking.status }}</td>
+                            <td>
+                                {% if booking.status == "Booked" %}
+                                <form method="POST"
+                                    action="{{ url_for('cancel_booking', booking_id=booking.booking_id) }}">
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        Cancel
+                                    </button>
+                                </form>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center">
+                                No bookings found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+
+        </div>
     </div>
-</nav>
-
-<div class="container">
-    <div class="dashboard-card">
-        <h2 class="fw-bold">Welcome, Student!</h2>
-        <p class="text-secondary">
-            
-
-        <hr>
-
-        <h5>Dashboard</h5>
-        <p>Course Management</p>
-        <p>Examination Management</p>
-        <p>Examiner Approval</p>
-        <p>Student Records</p>
-    </div>
-</div>
 
 </body>
+
 </html>

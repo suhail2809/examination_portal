@@ -29,7 +29,7 @@ class User(UserMixin, db.Model):
     is_approved = db.Column(db.Boolean, default=False, nullable=False)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
 
-    created_at = db.Column(db.DateTime,default=datetime.utcnow,nullable=False)
+    created_at = db.Column(db.DateTime,default=datetime.now,nullable=False)
 
     def get_id(self):
         return str(self.user_id)
@@ -61,7 +61,7 @@ class Course(db.Model):
 
     created_at = db.Column(
         db.DateTime,
-        default=datetime.utcnow,
+        default=datetime.now,
         nullable=False
     )
 
@@ -124,7 +124,7 @@ class Examination(db.Model):
 
     created_at = db.Column(
         db.DateTime,
-        default=datetime.utcnow,
+        default=datetime.now,
         nullable=False
     )
 
@@ -271,7 +271,7 @@ class Booking(db.Model):
 
     booked_timing = db.Column(
         db.DateTime,
-        default=datetime.utcnow,
+        default=datetime.now,
         nullable=False
     )
 
@@ -403,14 +403,10 @@ class ExaminationAssignment(db.Model):
     assignment_id = db.Column(db.Integer, primary_key=True)
     examination_id = db.Column(db.Integer , db.ForeignKey("examinations.exam_id"),nullable=False)
     examiner_id = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
-    assigned_time= db.Column(db.DateTime, default= datetime.utcnow, nullable=False)
+    assigned_time= db.Column(db.DateTime, default= datetime.now, nullable=False)
 
     examination= db.relationship("Examination", backref=db.backref("examiner_assignments"))
     examiner = db.relationship("User", backref=db.backref("examination_assignments"))
-
-
-
-
 
 
 

@@ -148,14 +148,7 @@ def admin_login():
     return render_template("admin_login.html")
 
 
-### student dashboard
-@app.route("/student/dashboard")
-@login_required
-def student_dashboard():
-    if current_user.role!="Student":
-        abort(403)
 
-    return render_template("student_dashboard.html")
 
 #### examiner dasboard
 @app.route("/examiner/dashboard")
@@ -262,7 +255,6 @@ def examiner_status(user_id):
 
     examiner= User.query.filter_by(user_id=user_id, role="Examiner").first_or_404()
 
-    examiner.is_approved = True
     examiner.is_active = not examiner.is_active
     db.session.commit()
 
@@ -384,7 +376,6 @@ def delete_assignment(assignment_id):
     db.session.commit()
 
     return redirect(url_for("assign_examiners"))
-
 
 
 ### course manage ###
@@ -619,7 +610,101 @@ def delete_exams(exam_id):
     
     return redirect(url_for("manage_exams"))
 
+#### admin view and manage student records on admin dashboard date-31 oct
 
+@app.route("/admin/student-records")
+@login_required
+def student_records():
+    if current_user.role!="Admin":
+        abort(403)
+
+    search = request.args.get("search", "").strip()
+    exam_id = request.args.get("exam_id","").strip()
+    students_query = User.query.filter_by(role="Student")
+
+    if search:
+        if search.isdigit():
+            students_query = students_query.filter((User.user_id == int(search)) | (User.name.ilike(f"%{search}%")))
+        else:
+            students_query = students_query.filter(User.name.ilike(f"{search}%"))
+
+    ## filter student based on bokked exam 
+    if exam_id.isdigit():
+        students_query = students_query.filter(User.user_id.in_(db.session.query(Booking.student_id).filter_by(examination_id =int(exam_id))))
+    
+    students= students_query.order_by(User.user_id.desc()).all()
+    examinations = Examination.query.order_by(Examination.title).all()
+
+    return render_template("student_records.html", students=students, search = search,exam_id=exam_id, examinations=examinations)
+
+# This line connects the search form in your HTML to your Python route.
+
+# Let's break it down:
+# Part	Meaning
+# request	Information about the current HTTP request
+# .args	Query parameters in the URL, typically sent by a GET form
+# .get("search", "")	Get the value named search; use an empty string if it's missing
+# .strip()	Remove spaces at the beginning and end
+# search = ...	Store the resulting text in a Python variable
+
+# For example, if the form sends:
+
+# /admin/student-records?search=Rahul
+
+# then search becomes "Rahul".
+
+# If no search is entered, search becomes "" (an empty string).
+# Here, User is your database model.
+# - User.query starts a database query.
+# - .filter_by(role="Student") selects only records whose role is Student.
+# - students_query stores that query so we can add more filters.
+# Important: This line builds the query. It does not fetch all the records yet.
+# if search: means the search value is not empty.
+
+# search.isdigit() checks whether every character is a digit.
+
+# Examples:
+# Search text	isdigit()
+# "12"	True
+# "Rahul"	False
+# "12abc"	False
+# ""	False
+
+# Why check this? Because we want numeric searches to match a student ID as well as a name.
+# Lines 11–14: Search by ID or name
+# students_query = students_query.filter(    (User.user_id == int(search)) |    (User.name.ilike(f"%{search}%")))
+
+
+
+# This is the main search logic.
+# - User.user_id == int(search) checks for an exact student ID match.
+# - int(search) converts numeric text such as "12" into the integer 12.
+# - User.name.ilike(...) searches student names without case sensitivity.
+# - f"%{search}%" inserts the search text into a SQL pattern.
+# - % means any sequence of characters.
+# - | means OR in this SQLAlchemy filter expression.
+# For example, searching for 12 can match:
+# - A student whose ID is 12.
+# - A student named Rohan12.
+# - A student named 12 Kumar.
+# The query matches either condition.
+# Lines 15–17: Search by name only
+# else:    students_query = students_query.filter(        User.name.ilike(f"%{search}%")    )
+
+
+
+# If the search contains letters or other non-digit characters, we search the name.
+
+# For example, searching for rah can match names such as Rahul or Sarah, depending on the actual name data.
+
+
+
+# The values passed to it become available inside Jinja2:
+# - students=students lets the HTML loop through the student records.
+# - search=search lets the HTML keep the previous search text in the input field.
+# Notice that the names on the left of = are template variable names. The expressions on the right refer to Python variables.
+
+# For example, students=students means: "Make the Python variable students available to the template under the name students."
 
 @app.route("/examiner/create-slots/<int:exam_id>", methods=["GET","POST"])
 @login_required
@@ -649,13 +734,19 @@ def create_slots(exam_id):
         
         if not (examination.start_date <= slot_date <=examination.end_date):
             abort(400, description="c")
-        now= datetime.now()
+        
+        now = datetime.now()
+        
 
         if not examination.slot_creation_start or not examination.slot_creation_end:
-            abort(400, description="d")
+            abort(400, description="Slot creation dates are not configured.")
 
-        if not (examination.slot_creation_start  <= examination.slot_creation_end):
-            abort(400, description="e")
+        if examination.slot_creation_start >= examination.slot_creation_end:
+            abort(400, description="Invalid slot creation time window.")
+
+        if not (examination.slot_creation_start <= now <= examination.slot_creation_end):
+            abort(403, description="Slot creation is currently closed.")
+
 
         slot = ExamSlot(
             examination_id = exam_id,
@@ -701,7 +792,7 @@ def edit_slots(slot_id):
         slot.end_time = time.fromisoformat(request.form.get('end_time'))
         slot.capacity = int(request.form.get('capacity'))
 
-        if not slot.start_time <= slot.end_time:
+        if  slot.start_time >= slot.end_time:
             abort(400, description="start time must be before end time; fix your time slot")
 
         if  slot.capacity < 1:
@@ -748,4 +839,179 @@ def examiner_slots():
     slots = ExamSlot.query.filter_by(examiner_id= current_user.user_id).order_by(ExamSlot.date,ExamSlot.start_time).all()
 
     return render_template("examiner_slots.html", slots=slots)
+
+
+
+
+### yahan wo routing hai jahaan examier apna banaya hua 
+# routing khud delete kar sake agar kisi student ne abhi tak book 
+# naa kiya ho tabb
+
+
+@app.route("/examiner/edit-slots/<int:slot_id>", methods=["GET","POST"])
+@login_required
+
+def examiner_edit_slot(slot_id):
+    if current_user.role!="Examiner":
+        abort(403)
+
+    if not current_user.is_active or not current_user.is_approved:
+        logout_user()
+        return redirect(url_for('examiner_login'))
+
+    slot = ExamSlot.query.filter_by(slot_id = slot_id, examiner_id= current_user.user_id).first_or_404()
+
+    if slot.booked_count >0:
+        abort(403, description="This slot cant be edited because student have already booked")
+
+    if request.method == "POST":
+        slot.date = date.fromisoformat(request.form.get("date"))
+        slot.start_time = time.fromisoformat(request.form.get("start_time"))
+        slot.end_time = time.fromisoformat(request.form.get("end_time"))
+        slot.capacity = int(request.form.get("capacity"))
+
+        if slot.start_time >= slot.end_time:
+            abort(400, description="Start time must be before end time.")
+
+        if slot.capacity < 1:
+            abort(400, description="Capacity must be at least 1.")
+
+        examination = Examination.query.get_or_404(slot.examination_id)
+
+        if not examination.start_date or not examination.end_date:
+            abort(400, description="Examination dates are not configured.")
+
+        if not (examination.start_date <= slot.date <= examination.end_date):
+            abort(400, description="Slot date must be within the examination dates.")
+
+        db.session.commit()
+        return redirect(url_for("examiner_slots"))
+
+    return render_template("edit_slots.html", slot=slot)
+
+
+### examier created slot ko khud examiner cancel kre 
+
+@app.route("/examiner/cancel-slots/<int:slot_id>", methods=["POST"])
+@login_required
+
+def examiner_slot_cancel(slot_id):
+    if current_user.role!= "Examiner":
+        abort(403)
+
+    if not current_user.is_active or not current_user.is_approved:
+        logout_user
+        return redirect(url_for('examiner_login'))
+
+    slot = ExamSlot.query.filter_by(slot_id=slot_id, examiner_id=current_user.user_id).first_or_404()
+
+    if slot.booked_count >0:
+        abort(403, description="Student already bokked in this cant cancel slots")
+
+    slot.status= "Cancelled"
+    db.session.commit()
+
+    return redirect(url_for("examiner_slots"))
+
+
+
+###### yahan se start hoga student dasahboard route aur stduent booking ka
+
+### student dashboard
+@app.route("/student/dashboard")
+@login_required
+def student_dashboard():
+    if current_user.role!="Student":
+        abort(403)
+
+    total_bookings = Booking.query.filter_by(student_id = current_user.user_id).count()
+
+    my_bookings = Booking.query.filter_by(student_id=current_user.user_id).order_by(Booking.booked_timing.desc()).all()
+
+    slots =ExamSlot.query.filter_by(status="Available").order_by(ExamSlot.date, ExamSlot.start_time).all()
+    return render_template("student_dashboard.html", total_bookings=total_bookings, slots=slots, my_bookings=my_bookings)
+
+
+
+### student exam slot ko yahan se book krega is route se apne dashboard pe jo book button hai usse
+
+@app.route("/student/book-slots/<int:slot_id>", methods=["POST"])
+@login_required
+
+def book_slot(slot_id):
+    if current_user.role!="Student":
+        abort(403)
+
+    slot =ExamSlot.query.get_or_404(slot_id)
+    exam = Examination.query.get_or_404(slot.examination_id)
+
+    now= datetime.now()
+
+    ## check kro slot avaiibality
+
+    print("1. Booking route reached")
+
+    if slot.status != "Available" or slot.available_seats <= 0:
+        print("2. Slot unavailable")
+        flash("This slot is no longer available")
+        return redirect(url_for("student_dashboard"))
+    
+    if not (exam.booking_start <= now <= exam.booking_end):
+        print("3. Booking period closed")
+        flash("Booking is currently closed")
+        return redirect(url_for("student_dashboard"))
+
+    booking= Booking.query.filter_by(student_id = current_user.user_id, examination_id=exam.exam_id).first()
+    
+    if booking and booking.status != "Cancelled":
+        flash("You already have a booking for this examination.", "warning")
+        return redirect(url_for("student_dashboard"))
+
+    if booking:
+        booking.slot_id = slot.slot_id
+        booking.status ="Booked"
+        booking.booked_timing = now
+        booking.cancelled_at = None
+
+    else:
+        booking = Booking(
+            student_id = current_user.user_id,
+            examination_id = exam.exam_id,
+            slot_id = slot.slot_id,
+            status="Booked",
+            booked_timing= now
+        )
+        db.session.add(booking)
+    print("4. Before commit")
+    db.session.commit()
+    print("5. After commit")
+
+
+    return redirect(url_for("student_dashboard"))
+
+
+### booking cancel route bys tudent 
+
+@app.route("/student/cancel-booking/<int:booking_id>", methods=["POST"])
+@login_required
+
+def cancel_booking(booking_id):
+    if current_user.role!= "Student":
+        abort(403)
+
+    booking= Booking.query.get_or_404(booking_id)
+
+    if booking.student_id != current_user.user_id:
+        abort(403)
+
+    if booking.status !="Booked":
+        flash("this booking cant be cancelled")
+        return redirect(url_for("student_dashboard"))
+
+    booking.status ="Cancelled"
+    booking.cancelled_at = datetime.now()
+
+    db.session.commit()
+
+    return redirect(url_for("student_dashboard"))
 
