@@ -27,7 +27,8 @@
             margin-bottom: 40px;
         }
 
-        h2, h4 {
+        h2,
+        h4 {
             color: #0d3d33;
         }
 
@@ -58,9 +59,8 @@
             background-color: white;
             padding: 20px;
             border-radius: 12px;
-            
-        }
 
+        }
     </style>
 </head>
 
@@ -69,7 +69,7 @@
     <nav class="navbar">
         <div class="container">
             <a href="{{ url_for('examiner_dashboard')}}" class="navbar-brand">Examination Management Portal</a>
-            
+
             <a href="{{ url_for('logout') }}" class="btn btn-outline-light btn-sm">Logout</a>
         </div>
     </nav>
@@ -78,93 +78,137 @@
         <div class="dashboard-card mb-4">
             <h2 class="fw-bold">Welcome, {{ current_user.name }} !</h2>
             <p class="text-secondary">
-            Manage Exam Slots and assigned examinations.
-            </p> </div>
+                Manage Exam Slots and assigned examinations.
+            </p>
+        </div>
 
-            <hr>
+        <hr>
 
-            <div class="row g-3 mb-4">
+        <div class="row g-3 mb-4">
 
-                <div class="col-md-6 col-lg-3">
-                    <div class="card stat-card p-3 text-center">
-                        <h6>Assigned Examinations</h6>
-                        <div class="stat-number">{{ assigned_count }}</div>
-                    </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card stat-card p-3 text-center">
+                    <h6>Assigned Examinations</h6>
+                    <div class="stat-number">{{ assigned_count }}</div>
                 </div>
-
-                <div class="col-md-6 col-lg-3">
-                    <div class="card stat-card p-3 text-center">
-                        <h6>slots created</h6>
-                        <div class="stat-number">{{ slots_count }}</div>
-
-                       
-                    </div>
-                </div>
-
-                <div class="col-md-6 col-lg-3">
-                    <div class="card stat-card p-3 text-center">
-                        <h6>Total Students Booked</h6>
-                        <div class="stat-number">{{ students_booked }}</div>
-                    </div>
-                </div>
-
-                <div class="col-md-6 col-lg-3">
-                    <div class="card stat-card p-3 text-center">
-                        <h6>Pending Evaluations</h6>
-                        <div class="stat-number">{{ pending_evaluations }}</div>
-                    </div>
-                </div>
-
-
             </div>
 
-            <div class="dashboard-card mb-4 ">
+            <div class="col-md-6 col-lg-3">
+                <div class="card stat-card p-3 text-center">
+                    <h6>slots created</h6>
+                    <div class="stat-number">{{ slots_count }}</div>
 
-                <h3 class="mb-4 text-center ">Assigned Examinations</h3>
 
-                {% if assignments %}
-                <div class="row g-3">
-
-                    {% for assignment in assignments %}
-                    <div class="col md-6">
-                        <div class="card p-3 h-100">
-                            <h5>{{ assignment.examination.title }}</h5>
-                            <p class="mb-1">
-                                <strong>Course:</strong>
-                                {{ assignment.examination.course.course_name }}
-                            </p>
-
-                            <p class="mb-1">
-
-                                <strong>Type:</strong>
-                                {{ assignment.examination.exam_type }}
-                            </p>
-                            <p class="mb-1">
-                                <strong>Start Date:</strong>
-                                {{ assignment.examination.start_date }}
-                            </p>
-
-                            <p class="mb-0">
-                                <strong>End Date:</strong>
-                                {{ assignment.examination.end_date }}
-                            </p>
-
-                            <a href="{{url_for('create_slots', exam_id = assignment.examination.exam_id)}}" class="btn btn-success mt-3  w-100"> Create Slots </a>
-                        </div>
-                    </div>
-                    {% endfor %}
                 </div>
-                {% else %}
-                <p class="text-muted"> No assigned examinations</p>
-                {% endif%}
             </div>
 
-        </div>        
+            <div class="col-md-6 col-lg-3">
+                <div class="card stat-card p-3 text-center">
+                    <h6>Total Students Booked</h6>
+                    <div class="stat-number">{{ students_booked }}</div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="card stat-card p-3 text-center">
+                    <h6>Pending Evaluations</h6>
+                    <div class="stat-number">{{ pending_evaluations }}</div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <div class="dashboard-card mb-4 ">
+
+            <h3 class="mb-4 text-center ">Assigned Examinations</h3>
+
+            {% if assignments %}
+            <div class="row g-3">
+
+                {% for assignment in assignments %}
+                <div class="col md-6">
+                    <div class="card p-3 h-100">
+                        <h5>{{ assignment.examination.title }}</h5>
+                        <p class="mb-1">
+                            <strong>Course:</strong>
+                            {{ assignment.examination.course.course_name }}
+                        </p>
+
+                        <p class="mb-1">
+
+                            <strong>Type:</strong>
+                            {{ assignment.examination.exam_type }}
+                        </p>
+                        <p class="mb-1">
+                            <strong>Start Date:</strong>
+                            {{ assignment.examination.start_date }}
+                        </p>
+
+                        <p class="mb-0">
+                            <strong>End Date:</strong>
+                            {{ assignment.examination.end_date }}
+                        </p>
+
+                        <a href="{{url_for('create_slots', exam_id = assignment.examination.exam_id)}}"
+                            class="btn btn-success mt-3  w-100"> Create Slots </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted"> No assigned examinations</p>
+            {% endif%}
+        </div>
+
+        <div class="table-container mb-4">
+            <h4 class="text-center mb-4">Booked Students</h4>
+
+            {% if booked_students %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle">
+                    <thead class="table-success">
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Student Name</th>
+                            <th>Examination</th>
+                            <th>Slot Date</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for booking in booked_students %}
+                        <tr>
+                            <td>{{ booking.booking_id }}</td>
+                            <td>{{ booking.student.name }}</td>
+                            <td>{{ booking.examination.title }}</td>
+                            <td>{{ booking.slot.date }}</td>
+                            <td>{{ booking.slot.start_time }}</td>
+                            <td>{{ booking.slot.end_time }}</td>
+                            <td>{{ booking.status }}</td>
+                            <td>
+                                <span class="text-muted">Evaluation coming next</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center">No students have booked your slots yet.</p>
+            {% endif %}
+        </div>
+
+    </div>
     </div>
     <div class="dashboard-card text-center ">
-    
-            <h5>My Examination slots</h5>
-            <a href="{{ url_for('examiner_slots')}}" class="btn btn-primary "> View Your Slots</a>
+
+        <h5>My Examination slots</h5>
+        <a href="{{ url_for('examiner_slots')}}" class="btn btn-primary "> View Your Slots</a>
 
     </div>
     </div>

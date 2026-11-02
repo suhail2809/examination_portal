@@ -168,7 +168,11 @@ def examiner_dashboard():
                             ExamSlot.examiner_id == current_user.user_id,
                             Booking.status.in_(["Booked","Completed"])).count()
 
-
+                            ### doing for rubrics 
+    booked_students = Booking.query.join(ExamSlot, Booking.slot_id == ExamSlot.slot_id).filter(
+                            ExamSlot.examiner_id == current_user.user_id,
+                            Booking.status.in_(["Booked", "Completed"])
+                            ).order_by(ExamSlot.date, ExamSlot.start_time).all()
     pending_evaluations= 0
     for slot in slots:  ## for every slot find its all completed bookings
         bookings = Booking.query.filter_by(slot_id=slot.slot_id, status="Completed").all()
@@ -180,7 +184,7 @@ def examiner_dashboard():
 
     return render_template("examiner_dashboard.html", assignments=assignments, students_booked=students_booked,
                             assigned_count=len(assignments), slots_count=len(slots),
-                            pending_evaluations=pending_evaluations)
+                            pending_evaluations=pending_evaluations, booked_students=booked_students)
 
 
 ## admin dashboard
@@ -1015,3 +1019,7 @@ def cancel_booking(booking_id):
 
     return redirect(url_for("student_dashboard"))
 
+
+
+########
+########  EVALUATION TOUTE #####
