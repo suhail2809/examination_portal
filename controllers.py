@@ -1021,5 +1021,291 @@ def cancel_booking(booking_id):
 
 
 
+#### mark booking completed or not   3 oct 12 am 
+@app.route("/examiner/complete-booking/<int:booking_id>", methods=["POST"])
+@login_required
+def complete_booking(booking_id):
+
+    if current_user.role != "Examiner":
+        abort(403)
+
+    if not current_user.is_active or not current_user.is_approved:
+        logout_user()
+        return redirect(url_for("examiner_login"))
+
+    booking = Booking.query.join(
+        ExamSlot, Booking.slot_id == ExamSlot.slot_id
+    ).filter(
+        Booking.booking_id == booking_id,
+        ExamSlot.examiner_id == current_user.user_id
+    ).first_or_404()
+
+    if booking.status != "Booked":
+        abort(400, description="This booking cannot be completed.")
+
+    # Check whether the examination slot has ended
+    slot_end = datetime.combine(
+        booking.slot.date,
+        booking.slot.end_time
+    )
+
+    if datetime.now() < slot_end:
+        abort(400, description="The examination slot has not ended yet.")
+
+    booking.status = "Completed"
+    db.session.commit()
+
+    flash("Booking marked as completed!", "success")
+
+    return redirect(url_for("examiner_dashboard"))
+
+
 ########
-########  EVALUATION TOUTE #####
+########  EVALUATION TOUTE ##### 3 oct 12 am
+
+@app.route("/examiner/evaluate/<int:booking_id>", methods=["GET", "POST"])
+@login_required
+def evaluate_student(booking_id):
+
+    if current_user.role != "Examiner":
+        abort(403)
+
+    if not current_user.is_active or not current_user.is_approved:
+        logout_user()
+        return redirect(url_for("examiner_login"))
+
+    # Find the booking only if its slot belongs to this examiner
+    booking = Booking.query.join(
+        ExamSlot, Booking.slot_id == ExamSlot.slot_id
+    ).filter(
+        Booking.booking_id == booking_id,
+        ExamSlot.examiner_id == current_user.user_id
+    ).first_or_404()
+
+    # Evaluation is allowed only after the examination is completed
+    if booking.status != "Completed":
+        abort(400, description="This student is not ready for evaluation.")
+
+    # Check whether this booking already has an evaluation
+    existing_evaluation = Evaluation.query.filter_by(
+        booking_id=booking.booking_id
+    ).first()
+
+    if existing_evaluation:
+        abort(400, description="This student has already been evaluated.")
+
+    # Get all rubrics created by Admin for this examination
+    rubrics = Rubric.query.filter_by(
+        examination_id=booking.examination_id
+    ).all()
+
+    if not rubrics:
+        abort(400, description="No rubrics have been created for this examination.")
+
+    if request.method == "POST":
+
+        total_marks = 0
+        scores = []
+
+        for rubric in rubrics:
+
+            awarded_marks = request.form.get(
+                f"marks_{rubric.rubric_id}", type=int
+            )
+
+            if awarded_marks is None or not (0 <= awarded_marks <= rubric.max_marks):
+                abort(400, description="Invalid marks entered.")
+
+            total_marks += awarded_marks
+
+            scores.append(
+                RubricScore(
+                    rubric_id=rubric.rubric_id,
+                    marks=awarded_marks
+                )
+            )
+
+        remarks = request.form.get("remarks", "").strip()
+
+        evaluation = Evaluation(
+            booking_id=booking.booking_id,
+            examiner_id=current_user.user_id,
+            marks=total_marks,
+            remarks=remarks
+        )
+
+        db.session.add(evaluation)
+        db.session.flush()
+
+        for score in scores:
+            score.evaluation_id = evaluation.evaluation_id
+            db.session.add(score)
+
+        db.session.commit()
+
+        flash("Evaluation submitted successfully!", "success")
+        return redirect(url_for("examiner_dashboard"))
+
+    return render_template(
+        "evaluate_student.html",
+        booking=booking,
+        rubrics=rubrics
+    )
+
+
+######## all rubrics route
+
+@app.route("/admin/manage-rubrics", methods=["GET", "POST"])
+@login_required
+def manage_rubrics():
+
+    if current_user.role != "Admin":
+        abort(403)
+
+    examinations = Examination.query.order_by(
+        Examination.exam_id.desc()
+    ).all()
+
+    if request.method == "POST":
+
+        examination_id = request.form.get("examination_id", type=int)
+        criteria_name = request.form.get("criteria_name", "").strip()
+        max_marks = request.form.get("max_marks", type=int)
+        weightage = request.form.get("weightage", type=float)
+        description = request.form.get("description", "").strip()
+
+        examination = Examination.query.get_or_404(examination_id)
+
+        if not criteria_name or max_marks is None or weightage is None:
+            abort(400, description="Please enter valid rubric details.")
+
+        if max_marks <= 0 or weightage < 0:
+            abort(400, description="Invalid marks or weightage.")
+
+        rubric = Rubric(
+            examination_id=examination.exam_id,
+            criteria_name=criteria_name,
+            max_marks=max_marks,
+            weightage=weightage,
+            description=description
+        )
+
+        db.session.add(rubric)
+        db.session.commit()
+
+        flash("Rubric created successfully!", "success")
+
+        return redirect(url_for(
+            "manage_rubrics",
+            examination_id=examination.exam_id #Yahan examination_id pass 
+                                                #karne ka reason hai ki rubric save hone ke baad wahi selected examination dobara show ho.
+        ))
+##Create karne ke alawa isi route ka GET part rubrics display karta hai.
+# Conceptually humne ye kiya:  Yahan request.args ka use hota hai URL ke query parameters ko read karne ke liye.
+# /admin/manage-rubrics?examination_id=5
+# Is URL mein:
+# - ? query parameters start karta hai.
+# - examination_id parameter ka naam hai.
+# - 5 uski value hai.
+
+# Iska matlab:
+# 1. Selected examination ID receive karo.
+# 2. Us ID ka examination database se fetch karo.
+# 3. Us examination ke saare rubrics fetch karo.
+# 4. Template ko send karo.
+# #
+    selected_exam_id = request.args.get("examination_id", type=int)
+
+    selected_exam = None
+    rubrics = []
+
+    if selected_exam_id:
+        selected_exam = Examination.query.get_or_404(selected_exam_id)
+
+        rubrics = Rubric.query.filter_by(
+            examination_id=selected_exam.exam_id
+        ).order_by(Rubric.rubric_id).all()
+
+    return render_template(
+        "manage_rubrics.html",
+        examinations=examinations,
+        selected_exam=selected_exam,
+        rubrics=rubrics
+    )
+###render_template() Python ke variables ko HTML/Jinja template tak bhejta hai.
+
+@app.route("/admin/edit-rubric/<int:rubric_id>", methods=["GET", "POST"])
+@login_required
+def edit_rubric(rubric_id):
+
+    if current_user.role != "Admin":
+        abort(403)
+
+    rubric = Rubric.query.get_or_404(rubric_id)
+
+    if request.method == "POST":
+
+        criteria_name = request.form.get("criteria_name", "").strip()
+        max_marks = request.form.get("max_marks", type=int)
+        weightage = request.form.get("weightage", type=float)
+        description = request.form.get("description", "").strip()
+
+        if not criteria_name or max_marks is None or weightage is None:
+            abort(400, description="Please enter valid rubric details.")
+
+        if max_marks <= 0 or weightage < 0:
+            abort(400, description="Invalid marks or weightage.")
+
+        rubric.criteria_name = criteria_name
+        rubric.max_marks = max_marks
+        rubric.weightage = weightage
+        rubric.description = description
+
+        db.session.commit()
+
+        flash("Rubric updated successfully!", "success")
+
+        return redirect(url_for(
+            "manage_rubrics",
+            examination_id=rubric.examination_id
+        ))
+
+    examinations = Examination.query.order_by(
+        Examination.exam_id.desc()
+    ).all()
+
+    selected_exam = rubric.examination
+
+    rubrics = Rubric.query.filter_by(
+        examination_id=rubric.examination_id
+    ).all()
+
+    return render_template(
+        "manage_rubrics.html",
+        examinations=examinations,
+        selected_exam=selected_exam,
+        rubrics=rubrics,
+        edit_rubric=rubric
+    )
+
+
+@app.route("/admin/delete-rubric/<int:rubric_id>", methods=["POST"])
+@login_required
+def delete_rubric(rubric_id):
+
+    if current_user.role != "Admin":
+        abort(403)
+
+    rubric = Rubric.query.get_or_404(rubric_id)
+
+    examination_id = rubric.examination_id
+
+    db.session.delete(rubric)
+    db.session.commit()
+
+    flash("Rubric deleted successfully!", "success")
+
+    return redirect(url_for(
+        "manage_rubrics",
+        examination_id=examination_id
+    ))

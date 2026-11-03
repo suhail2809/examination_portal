@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Manage Rubrics</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #dbf4e3;
+        }
+
+        .navbar {
+            background-color: #0d3d33;
+        }
+
+        .navbar-brand {
+            color: white;
+            font-weight: bold;
+        }
+
+        .main-container {
+            margin-top: 35px;
+            margin-bottom: 40px;
+        }
+
+        .content-card {
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        h3, h4 {
+            color: #0d3d33;
+        }
+
+        .btn-custom {
+            background-color: #31796b;
+            color: white;
+        }
+
+        .btn-custom:hover {
+            background-color: #0d3d33;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+<nav class="navbar">
+    <div class="container">
+        <a href="{{ url_for('admin_dashboard') }}"
+           class="navbar-brand">
+            Examination Management Portal
+        </a>
+
+        <a href="{{ url_for('logout') }}"
+           class="btn btn-outline-light btn-sm">
+            Logout
+        </a>
+    </div>
+</nav>
+
+<div class="container main-container">
+
+    <h3 class="text-center mb-4">Manage Examination Rubrics</h3>
+
+    <!-- Select Examination -->
+
+    <div class="content-card">
+
+        <h4 class="mb-3">Select Examination</h4>
+
+        <form method="GET" action="{{ url_for('manage_rubrics') }}">
+
+            <div class="row align-items-end">
+
+                <div class="col-md-9">
+
+                    <label class="form-label">
+                        Examination
+                    </label>
+
+                    <select name="examination_id"
+                            class="form-select"
+                            required>
+
+                        <option value="">Select Examination</option>
+
+                        {% for exam in examinations %}
+
+                        <option value="{{ exam.exam_id }}"
+                            {% if selected_exam and selected_exam.exam_id == exam.exam_id %}
+                                selected
+                            {% endif %}>
+
+                            {{ exam.title }}
+
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-3 mt-3 mt-md-0">
+
+                    <button type="submit"
+                            class="btn btn-custom w-100">
+                        View Rubrics
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    {% if selected_exam %}
+
+    <!-- Selected Examination -->
+
+    <div class="content-card">
+
+        <h4>Examination: {{ selected_exam.title }}</h4>
+
+        <p class="text-muted mb-0">
+            Examination ID: {{ selected_exam.exam_id }}
+        </p>
+
+    </div>
+
+
+    <!-- Add or Edit Rubric -->
+
+    <div class="content-card">
+
+        {% if edit_rubric %}
+
+            <h4 class="mb-4">Edit Rubric</h4>
+
+            <form method="POST" action="{{ url_for('edit_rubric', rubric_id=edit_rubric.rubric_id) }}">
+
+        {% else %}
+
+            <h4 class="mb-4">Add New Rubric</h4>
+
+            <form method="POST"
+                  action="{{ url_for('manage_rubrics') }}">
+
+                <input type="hidden"
+                       name="examination_id"
+                       value="{{ selected_exam.exam_id }}">
+
+        {% endif %}
+
+            <div class="mb-3">
+
+                <label class="form-label">Criterion Name</label>
+
+                <input type="text"
+                       name="criteria_name"
+                       class="form-control"
+                       value="{{ edit_rubric.criteria_name if edit_rubric else '' }}"
+                       placeholder="Example: Subject Knowledge"
+                       required>
+
+            </div>
+
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+
+                    <label class="form-label">Maximum Marks</label>
+
+                    <input type="number"
+                           name="max_marks"
+                           class="form-control"
+                           min="1"
+                           value="{{ edit_rubric.max_marks if edit_rubric else '' }}"
+                           required>
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label class="form-label">Weightage</label>
+
+                    <input type="number"
+                           name="weightage"
+                           class="form-control"
+                           min="0"
+                           step="0.01"
+                           value="{{ edit_rubric.weightage if edit_rubric else '' }}"
+                           required>
+
+                </div>
+
+            </div>
+
+            <div class="mb-3">
+
+                <label class="form-label">Description</label>
+
+                <textarea name="description"
+                          class="form-control"
+                          rows="3"
+                          placeholder="Describe this evaluation criterion">{{ edit_rubric.description if edit_rubric else '' }}</textarea>
+
+            </div>
+
+            {% if edit_rubric %}
+
+                <button type="submit" class="btn btn-custom">
+                    Update Rubric
+                </button>
+
+                <a href="{{ url_for('manage_rubrics',
+                                    examination_id=selected_exam.exam_id) }}"
+                   class="btn btn-secondary">
+                    Cancel
+                </a>
+
+            {% else %}
+
+                <button type="submit" class="btn btn-custom">
+                    Add Rubric
+                </button>
+
+            {% endif %}
+
+        </form>
+
+    </div>
+
+
+    <!-- Existing Rubrics -->
+
+    <div class="content-card">
+
+        <h4 class="mb-4">Existing Rubrics</h4>
+
+        {% if rubrics %}
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-hover align-middle">
+
+                <thead class="table-success">
+
+                    <tr>
+                        <th>Rubric ID</th>
+                        <th>Criterion Name</th>
+                        <th>Maximum Marks</th>
+                        <th>Weightage</th>
+                        <th>Description</th>
+                        <th>Action</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for rubric in rubrics %}
+
+                    <tr>
+
+                        <td>{{ rubric.rubric_id }}</td>
+
+                        <td>{{ rubric.criteria_name }}</td>
+
+                        <td>{{ rubric.max_marks }}</td>
+
+                        <td>{{ rubric.weightage }}</td>
+
+                        <td>{{ rubric.description or '-' }}</td>
+
+                        <td>
+
+                            <a href="{{ url_for('edit_rubric',
+                                                rubric_id=rubric.rubric_id) }}"
+                               class="btn btn-primary btn-sm">
+                                Edit
+                            </a>
+
+                            <form method="POST"
+                                  action="{{ url_for('delete_rubric',
+                                                     rubric_id=rubric.rubric_id) }}"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Delete this rubric?');">
+
+                                <button type="submit"
+                                        class="btn btn-danger btn-sm">
+                                    Delete
+                                </button>
+
+                            </form>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% else %}
+
+            <p class="text-muted text-center">
+                No rubrics created for this examination yet.
+            </p>
+
+        {% endif %}
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+</body>
+</html>

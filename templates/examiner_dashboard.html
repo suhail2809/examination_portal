@@ -191,7 +191,35 @@
                             <td>{{ booking.slot.end_time }}</td>
                             <td>{{ booking.status }}</td>
                             <td>
-                                <span class="text-muted">Evaluation coming next</span>
+
+                                {% if booking.status == "Booked" %}
+
+                                <form method="POST" action="{{ url_for('complete_booking',
+                                    booking_id=booking.booking_id) }}">
+
+                                    <button type="submit" class="btn btn-success btn-sm">
+                                        Mark Completed
+                                    </button>
+
+                                </form>
+
+                                {% elif booking.status == "Completed" %}
+
+                                {% if booking.evaluation %}
+
+                                <span class="badge bg-success">Evaluated</span>
+
+                                {% else %}
+
+                                <a href="{{ url_for('evaluate_student',
+                                booking_id=booking.booking_id) }}" class="btn btn-primary btn-sm">
+                                    Evaluate
+                                </a>
+
+                                {% endif %}
+
+                                {% endif %}
+
                             </td>
                         </tr>
                         {% endfor %}

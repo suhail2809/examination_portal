@@ -143,7 +143,7 @@ class Examination(db.Model):
 # --------------------------------------------------
 # 4. RUBRIC
 # --------------------------------------------------
-
+### admin ka banaya hua criteria ko databse me store krega ye
 class Rubric(db.Model):
     __tablename__ = "rubrics"
 
@@ -297,7 +297,7 @@ class Booking(db.Model):
 # --------------------------------------------------
 # 7. EVALUATION
 # --------------------------------------------------
-
+######  examiner ka final evaluation ko store krega 
 class Evaluation(db.Model):
     __tablename__ = "evaluations"
 
@@ -347,7 +347,7 @@ class Evaluation(db.Model):
 # --------------------------------------------------
 # 8. RUBRIC SCORE
 # --------------------------------------------------
-
+######this will store individual rubric marks and save
 class RubricScore(db.Model):
     __tablename__ = "rubric_scores"
 
