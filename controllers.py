@@ -1309,3 +1309,55 @@ def delete_rubric(rubric_id):
         "manage_rubrics",
         examination_id=examination_id
     ))
+
+
+@app.route("/admin/manage-results", methods=["GET", "POST"])
+@login_required
+def manage_results():
+
+    if current_user.role != "Admin":
+        abort(403)
+
+    examinations = Examination.query.order_by(
+        Examination.exam_id.desc()
+    ).all()
+
+    selected_exam = None
+    evaluations = []
+
+    examination_id = request.values.get("examination_id")
+
+    if examination_id:
+        selected_exam = Examination.query.get_or_404(
+            examination_id
+        )
+
+        evaluations = Evaluation.query.join(Booking).filter(
+            Booking.examination_id == selected_exam.exam_id
+        ).all()
+
+    if request.method == "POST":
+
+        if not selected_exam:
+            abort(400)
+
+        for evaluation in evaluations:
+            if not evaluation.is_published:
+                evaluation.is_published = True
+                evaluation.published_at = datetime.now()
+
+        db.session.commit()
+
+        flash("Results published successfully!", "success")
+
+        return redirect(url_for(
+            "manage_results",
+            examination_id=selected_exam.exam_id
+        ))
+
+    return render_template(
+        "manage_results.html",
+        examinations=examinations,
+        selected_exam=selected_exam,
+        evaluations=evaluations
+    )
