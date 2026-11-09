@@ -462,25 +462,17 @@ def manage_exams():
         description = request.form.get("description")
         exam_type = request.form.get("exam_type")
         duration = int(request.form.get("duration"))
-        start_date = date.strptime(request.form.get("start_date"), "%Y-%m-%d") if request.form.get("start_date") else None
+        start_date = date.fromisoformat(request.form.get("start_date")) if request.form.get("start_date") else None
 
-        end_date = date.strptime(request.form.get("end_date"), "%Y-%m-%d") if request.form.get("end_date") else None
-        slot_creation_start = datetime.strptime(request.form.get("slot_creation_start"), "%Y-%m-%dT%H:%M") if request.form.get("slot_creation_start") else None
+        end_date = date.fromisoformat(request.form.get("end_date")) if request.form.get("end_date") else None
 
-        slot_creation_end = datetime.strptime(
-            request.form.get("slot_creation_end"), "%Y-%m-%dT%H:%M"
-        ) if request.form.get("slot_creation_end") else None
+        slot_creation_start = datetime.fromisoformat(request.form.get("slot_creation_start")) if request.form.get("slot_creation_start") else None
 
-        booking_start = datetime.strptime(
-            request.form.get("booking_start"), "%Y-%m-%dT%H:%M"
-        ) if request.form.get("booking_start") else None
-
-        booking_end = datetime.strptime(
-            request.form.get("booking_end"), "%Y-%m-%dT%H:%M"
-        ) if request.form.get("booking_end") else None
+        slot_creation_end =  datetime.fromisoformat(request.form.get("slot_creation_end")) if request.form.get("slot_creation_end") else None
+        
+        booking_start = datetime.fromisoformat(request.form.get("booking_start")) if request.form.get("booking start") else None
+        booking_end = datetime.fromisoformat(request.form.get("booking_end")) if request.form.get("booking_end") else None
         max_marks = int(request.form.get("max_marks"))
-    
-
 
         exam  = Examination(
             course_id = course_id,
@@ -503,27 +495,14 @@ def manage_exams():
     examinations = Examination.query
 
     if search:
-        examinations = examinations.filter(
-            Examination.title.ilike(f"%{search}%")
-        )
+        examinations = examinations.filter(Examination.title.ilike(f"%{search}%"))
 
         if search.isdigit():
-            examinations = Examination.query.filter(
-                db.or_(
-                    Examination.title.ilike(f"%{search}%"),
-                    Examination.exam_id == int(search)
-                )
-            )
+            examinations = Examination.query.filter(db.or_(Examination.title.ilike(f"%{search}%"), Examination.exam_id == int(search)))
 
-    examinations = examinations.order_by(
-        Examination.exam_id.desc()
-    ).all()
+    examinations = examinations.order_by(Examination.exam_id.desc()).all()
 
-    return render_template(
-        "manage_examinations.html",
-        courses=courses,
-        examinations=examinations
-    )
+    return render_template("manage_examinations.html",courses=courses, examinations=examinations)
 
 @app.route("/admin/examinations/exam-status/<int:exam_id>", methods=["POST"])
 @login_required
@@ -641,74 +620,6 @@ def student_records():
 
     return render_template("student_records.html", students=students, search = search,exam_id=exam_id, examinations=examinations)
 
-# This line connects the search form in your HTML to your Python route.
-
-# Let's break it down:
-# Part	Meaning
-# request	Information about the current HTTP request
-# .args	Query parameters in the URL, typically sent by a GET form
-# .get("search", "")	Get the value named search; use an empty string if it's missing
-# .strip()	Remove spaces at the beginning and end
-# search = ...	Store the resulting text in a Python variable
-
-# For example, if the form sends:
-
-# /admin/student-records?search=Rahul
-
-# then search becomes "Rahul".
-
-# If no search is entered, search becomes "" (an empty string).
-# Here, User is your database model.
-# - User.query starts a database query.
-# - .filter_by(role="Student") selects only records whose role is Student.
-# - students_query stores that query so we can add more filters.
-# Important: This line builds the query. It does not fetch all the records yet.
-# if search: means the search value is not empty.
-
-# search.isdigit() checks whether every character is a digit.
-
-# Examples:
-# Search text	isdigit()
-# "12"	True
-# "Rahul"	False
-# "12abc"	False
-# ""	False
-
-# Why check this? Because we want numeric searches to match a student ID as well as a name.
-# Lines 11–14: Search by ID or name
-# students_query = students_query.filter(    (User.user_id == int(search)) |    (User.name.ilike(f"%{search}%")))
-
-
-
-# This is the main search logic.
-# - User.user_id == int(search) checks for an exact student ID match.
-# - int(search) converts numeric text such as "12" into the integer 12.
-# - User.name.ilike(...) searches student names without case sensitivity.
-# - f"%{search}%" inserts the search text into a SQL pattern.
-# - % means any sequence of characters.
-# - | means OR in this SQLAlchemy filter expression.
-# For example, searching for 12 can match:
-# - A student whose ID is 12.
-# - A student named Rohan12.
-# - A student named 12 Kumar.
-# The query matches either condition.
-# Lines 15–17: Search by name only
-# else:    students_query = students_query.filter(        User.name.ilike(f"%{search}%")    )
-
-
-
-# If the search contains letters or other non-digit characters, we search the name.
-
-# For example, searching for rah can match names such as Rahul or Sarah, depending on the actual name data.
-
-
-
-# The values passed to it become available inside Jinja2:
-# - students=students lets the HTML loop through the student records.
-# - search=search lets the HTML keep the previous search text in the input field.
-# Notice that the names on the left of = are template variable names. The expressions on the right refer to Python variables.
-
-# For example, students=students means: "Make the Python variable students available to the template under the name students."
 
 @app.route("/examiner/create-slots/<int:exam_id>", methods=["GET","POST"])
 @login_required
@@ -829,7 +740,7 @@ def cancel_slots(slot_id):
     return redirect(url_for('manage_slots'))
     
 
-## view examiner slots route
+## view examiner slots routeassignments= ExaminationAssignment.query.filter_by(examiner_id= current_user.user_id).all()
 @app.route("/examiner/my-slots")
 @login_required
 def examiner_slots():
@@ -850,6 +761,7 @@ def examiner_slots():
 ### yahan wo routing hai jahaan examier apna banaya hua 
 # routing khud delete kar sake agar kisi student ne abhi tak book 
 # naa kiya ho tabb
+
 
 
 @app.route("/examiner/edit-slots/<int:slot_id>", methods=["GET","POST"])
@@ -931,9 +843,17 @@ def student_dashboard():
     total_bookings = Booking.query.filter_by(student_id = current_user.user_id).count()
 
     my_bookings = Booking.query.filter_by(student_id=current_user.user_id).order_by(Booking.booked_timing.desc()).all()
+    search = request.args.get("search", "").strip()
 
+    slots_query = ExamSlot.query.join(Examination).filter(ExamSlot.status == "Available")
+
+    if search:
+        if search.isdigit():
+            slots_query = slots_query.filter(Examination.exam_id == int(search))
+        else:
+            slots_query = slots_query.filter(Examination.title.ilike(f"%{search}%"))
     slots =ExamSlot.query.filter_by(status="Available").order_by(ExamSlot.date, ExamSlot.start_time).all()
-    return render_template("student_dashboard.html", total_bookings=total_bookings, slots=slots, my_bookings=my_bookings)
+    return render_template("student_dashboard.html", total_bookings=total_bookings, slots=slots, my_bookings=my_bookings,search=search)
 
 
 
@@ -966,17 +886,17 @@ def book_slot(slot_id):
         return redirect(url_for("student_dashboard"))
 
     booking= Booking.query.filter_by(student_id = current_user.user_id, examination_id=exam.exam_id).first()
-    
+    ## we will chech ki yahan ki booking laready hai aur cancelled nhi hai to book firse nhi karana hai
     if booking and booking.status != "Cancelled":
         flash("You already have a booking for this examination.", "warning")
         return redirect(url_for("student_dashboard"))
-
+    ## aur agar pehle se booking hai aur cancelled ya fir kuch nhi hai to new slot id de do 
     if booking:
         booking.slot_id = slot.slot_id
         booking.status ="Booked"
         booking.booked_timing = now
         booking.cancelled_at = None
-
+    ## agar booking kabhi nhi thaa to new slot banao booking ka
     else:
         booking = Booking(
             student_id = current_user.user_id,
@@ -1361,3 +1281,32 @@ def manage_results():
         selected_exam=selected_exam,
         evaluations=evaluations
     )
+
+
+
+@app.route("/student/results")
+@login_required
+def student_results():
+
+    if current_user.role != "Student":
+        abort(403)
+
+    evaluations = Evaluation.query.join(Booking, Evaluation.booking_id == Booking.booking_id).filter(
+    Booking.student_id == current_user.user_id,Evaluation.is_published == True
+    ).order_by(Evaluation.evaluation_id.desc()).all()
+
+    return render_template("student_results.html",evaluations=evaluations)
+
+
+## student booking history
+
+@app.route("/student/booking-history")
+@login_required
+def student_booking_history():
+
+    if current_user.role != "Student":
+        abort(403)
+
+    bookings = Booking.query.filter_by(student_id=current_user.user_id).order_by(Booking.booked_timing.desc()).all()
+
+    return render_template("booking_history.html",bookings=bookings)

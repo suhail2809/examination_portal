@@ -35,9 +35,13 @@
 <body>
 
     <nav class="navbar">
-        <div class="container">
-            <span class="navbar-brand">Examination Management Portal</span>
+        <div class="container d-flex justify-content-between align-items-center">
+            <span class="navbar-text">Examination Management Portal</span>
+            <div class="d-flex align-items-center gap-2">
+            <a href="{{ url_for('student_booking_history') }}" class="btn btn-outline-light"> Booking History </a>
+            <a href="{{ url_for('student_results') }}" class="btn btn-outline-light ms-2"> Results </a>
             <a href="{{ url_for('logout') }}" class="btn btn-light">Logout</a>
+            </div>
         </div>
     </nav>
 
@@ -54,7 +58,15 @@
             <hr>
 
             <h4 class="fw-bold mb-3"> Available Slots</h4>
+            <!-- exam search funcntinality -->
+            <form method="GET" action="{{ url_for('student_dashboard') }}" class="mb-3">
 
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control" placeholder="Search examination name or ID" value="{{ search }}">
+                    <button type="submit" class="btn btn-success"> Search</button>
+                </div>
+
+            </form>
             <div class="table-responsive">
                 <table class="table table-bordered">
                     <thead class="table-success">
