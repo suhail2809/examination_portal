@@ -1310,3 +1310,78 @@ def student_booking_history():
     bookings = Booking.query.filter_by(student_id=current_user.user_id).order_by(Booking.booked_timing.desc()).all()
 
     return render_template("booking_history.html",bookings=bookings)
+
+
+
+
+
+## admin managing all bookings
+@app.route("/admin/manage-bookings")
+@login_required
+def admin_manage_bookings():
+
+    if current_user.role != "Admin":
+        abort(403)
+
+    search = request.args.get("search", "").strip()
+
+    bookings = Booking.query.join(User, Booking.student_id == User.user_id)
+    if search:
+        if search.isdigit():
+            bookings = bookings.filter(Booking.booking_id == int(search))
+        else:
+            bookings = bookings.filter(User.name.ilike(f"%{search}%"))
+
+    bookings = bookings.order_by(Booking.booked_timing.desc()).all()
+
+    return render_template("manage_bookings.html", bookings=bookings,search=search)
+
+
+## reschedule booking
+@app.route("/admin/reschedule-booking/<int:booking_id>", methods=["GET", "POST"])
+@login_required
+def admin_reschedule_booking(booking_id):
+
+    if current_user.role != "Admin":
+        abort(403)
+
+    booking = Booking.query.get_or_404(booking_id)
+
+    if booking.status != "Booked":
+        abort(400, description="Only active bookings can be rescheduled.")
+
+    slots = ExamSlot.query.filter_by(
+        examination_id=booking.examination_id,
+        status="Available"
+    ).all()
+
+    if request.method == "POST":
+
+        slot_id = request.form.get("slot_id", type=int)
+
+        if not slot_id:
+            abort(400, description="Please select a slot.")
+
+        new_slot = ExamSlot.query.get_or_404(slot_id)
+
+        if new_slot.examination_id != booking.examination_id:
+            abort(400, description="Invalid examination slot.")
+
+        if new_slot.slot_id == booking.slot_id:
+            abort(400, description="This is already the assigned slot.")
+
+        if new_slot.status != "Available" or new_slot.available_seats <= 0:
+            abort(400, description="This slot is not available.")
+
+        # Update existing booking
+        booking.slot_id = new_slot.slot_id
+
+        db.session.commit()
+
+        return redirect(url_for("admin_manage_bookings"))
+
+    return render_template(
+        "reschedule_booking.html",
+        booking=booking,
+        slots=slots
+    )
